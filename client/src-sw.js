@@ -26,19 +26,26 @@ warmStrategyCache({
 
 registerRoute(({ request }) => request.mode === 'navigate', pageCache);
 
-// Implemented asset caching
+// Implement asset caching
+const assetCache = new CacheFirst({
+  cacheName: 'asset-cache',
+  plugins: [
+    new CacheableResponsePlugin({
+      statuses: [0, 200],
+    }),
+    new ExpirationPlugin({
+      maxAgeSeconds: 7 * 24 * 60 * 60, 
+    }),
+  ],
+});
+
+// Register a route for assets
 registerRoute(
-  /\.(txt|docx|pdf|html|png|jpe?g|gif)$/, 
-  new CacheFirst({
-    cacheName: 'asset-cache',
-    plugins: [
-      new CacheableResponsePlugin({
-        statuses: [200],
-      }),
-      new ExpirationPlugin({
-        maxEntries: 50,
-        maxAgeSeconds: 7 * 24 * 60 * 60, 
-      }),
-    ],
-  })
+  ({ request }) =>
+    request.destination === 'style' ||
+    request.destination === 'script' ||
+    request.destination === 'image' ||
+    request.destination === 'font',
+  assetCache
 );
+
